@@ -1,27 +1,27 @@
+const Router = require('./Router');
+let router = new Router();
+const UserController = require('@controller/UserController');
+const MessageController = require('@controller/MessageController');
 
-class Router{
-    constructor(routes = []) {
-        this.routes = [];
-    }
+/**
+ *  Example of usage
+ * 
+ * router.add(Alias (string), Allow params [], ... Handlers (function))
+ * 
+ * 
+ * @param params[] - mean params witch you can send in a Request works like `/users/:id`
+ * @param Alias - a short name of your route 
+ * @param Handlers - a chain of Middleware and Controller function (You can use next() in middlewares with return statement `return next()`
+ */
 
-    callRoute(Data, WebSocket) {
-        for(let route of this.routes) {
-            if(route.alias === Data.alias) {
-                route.callback(Data.body, WebSocket);
-            }
-        }
-    }
 
-    add(alias, callback) {
-        this.routes.push({
-            alias,callback
-        })
-    }
+router.add('child', ['id','child_id'], function(Request, Response){
+  Response.send('asdf')
+});
 
-    getRoutes() {
-        console.log(this.routes);
-    }
+router.add('register',[], UserController.register.bind(UserController))
+router.add('login',[], UserController.login.bind(UserController))
+router.add('send', [], MessageController.send.bind(MessageController))
+router.getRoutes();
 
-}
-
-module.exports = Router;
+module.exports = router;

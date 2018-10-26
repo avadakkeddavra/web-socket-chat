@@ -1,13 +1,13 @@
-const Controller = require('Controller');
+const Controller = require('./Controller');
+const peers = require('@service/Peers');
+
 
 class MessageController extends Controller{
     
-    constructor() {
-
-    }
-
     send(Request, Response) {
+        let peer = peers.findPeer(Request.body.reviever_id);
 
+        peer.ws.send(Request.body.message);
     }
 
     get(Request, Response) {
