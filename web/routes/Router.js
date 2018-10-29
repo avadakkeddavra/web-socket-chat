@@ -28,15 +28,21 @@ class Router{
                    
                    var flag = true;
                    for(let i = 0; i < route.callbacks.length; i = i + 2) {
+
                        let callback = route.callbacks[i];
                        let nextCallback = route.callbacks[i+1];
                        
                        if(flag == true) {
                         flag = callback(Request, Response, function() {return true});
+                        console.log(flag);
+                       } else {
+                           break;
                        }
     
                        if(flag == true) {
                            flag = nextCallback(Request, Response, function() {return true});
+                       } else {
+                           break;
                        }
                    }
                    return;
@@ -66,7 +72,6 @@ class Router{
             params: params,
             callbacks
         })
-
     }
 
     checkRequestParams(AllowParams, params = []) {

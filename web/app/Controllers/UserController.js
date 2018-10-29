@@ -12,46 +12,47 @@ class UserController extends Controller {
 
     login(Request, Response) {
         this.Joi.validate(Request.body,UserSchemas.login, function(Error,Data){
-			if(!Error)
-			{
+            if(!Error)
+            {
+                      
+              User.findOne({
+                where:{
+                  email:Data.email,
+                }
+              })
+              .then(async user => {
                 
-				User.findOne({
-					where:{
-						email:Data.email,
-					}
+                let verify = await bcrypt.compare(Request.body.password, user.password);
+              
+                if(user && verify)
+                {
+                  var token = jwt.sign({
+                  name:user.name,
+                  id:user.id,
+                  email:user.email,
+                  avatar: user.avatar,
+                },process.env.JWT_KEY);
 
-				})
-				.then(async user => {
-                    let verify = await bcrypt.compare(Request.body.password, user.password);
-        
-					if(user && verify)
-					{
-						var token = jwt.sign({
-						name:user.name,
-						id:user.id,
-						email:user.email,
-						avatar: user.avatar,
-          },process.env.JWT_KEY);
-            peers.add({
-              id:user.id,
-              ws: Response,
-            });
+                  peers.add({
+                    id:user.id,
+                    ws: Response,
+                  });
 
-						Response.send({success: true, token: token});
-					}else{
-						
-						Response.send({success:false,error:'Invalid password or email'});
-					}
+                  Response.send({success: true, token: token});
+                }else{
+                  
+                  Response.send({success:false,error:'Invalid password or email'});
+                }
 
-				})
-				.catch(E => {
-				
-					Response.send({success:false,error:E.stack})
-				});
-			}else{
-				Response.send({success:false,error:Error})
-			}
-		})
+              })
+              .catch(E => {
+              
+                Response.send({success:false,error:E.stack})
+              });
+            }else{
+              Response.send({success:false,error:Error})
+            }
+		  })
     }
 
     register(Request, Response) {
@@ -88,6 +89,47 @@ class UserController extends Controller {
               Response.send({success: false,error: Error.details[0].message});
             }
           });
+    }
+
+    online(Request, Response) {
+      console.log(Request);
+      if(!Request.token) {
+        Response.send({success: false, message: 'Unauthenticated'});
+        return;
+      }
+
+      let token = Request.token;
+      
+      jwt.verify(token,process.env.JWT_KEY, async function(Error,Decoded){
+          if(!Error)
+          {   
+              let user = await User.findOne({
+                  where:{
+                      email:Decoded.email
+                  }
+              });
+
+              if(user)
+              {   
+                  let peer = peers.findPeer(user.id);
+
+                  if(!peer) {
+                      peers.add({
+                          id: user.id,
+                          ws: Response.WebSocket
+                      })
+                  } else {
+                    peer.ws = Response.WebSocket
+                  }
+                  console.log(peers.peers.length);          
+              }else{
+                  Response.send({success:false,error:'There are no such user founded'});
+              }
+              
+          }else{
+              Response.send({success:false,error:Error});
+          }
+      });
     }
 
     changePassword() {

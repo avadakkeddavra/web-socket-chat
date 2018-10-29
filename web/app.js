@@ -30,6 +30,6 @@ wss.on('connection', function connection(ws, req) {
   ws.on('message', function incoming(message) {
     Router.callRoute(message, ws);    
   });
-  ws.send('Connected');
+  ws.send(JSON.stringify({success: true}));
 });
 

@@ -5,9 +5,16 @@ const peers = require('@service/Peers');
 class MessageController extends Controller{
     
     send(Request, Response) {
-        let peer = peers.findPeer(Request.body.reviever_id);
-
-        peer.ws.send(Request.body.message);
+        console.log('send message');
+        let peer = peers.findPeer(Number(Request.body.receiver_id));
+        if(peer) {
+            peer.ws.send(JSON.stringify({
+                type:"message",
+                message: Request.body.message,
+                sender: Request.auth.name
+            }));
+        }
+        
     }
 
     get(Request, Response) {

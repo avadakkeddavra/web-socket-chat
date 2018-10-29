@@ -2,7 +2,7 @@ const Router = require('./Router');
 let router = new Router();
 const UserController = require('@controller/UserController');
 const MessageController = require('@controller/MessageController');
-
+const AuthMiddleware = require('@middleware/AuthMiddleware');
 /**
  *  Example of usage
  * 
@@ -15,13 +15,16 @@ const MessageController = require('@controller/MessageController');
  */
 
 
-router.add('child', ['id','child_id'], function(Request, Response){
-  Response.send('asdf')
+router.add('child', [], AuthMiddleware.auth, function(Request, Response){
+  console.log('hello')
+  Response.send({success: true, message: 'middleware'})
 });
+
+router.add('online',[], UserController.online.bind(UserController))
 
 router.add('register',[], UserController.register.bind(UserController))
 router.add('login',[], UserController.login.bind(UserController))
-router.add('send', [], MessageController.send.bind(MessageController))
+router.add('send', [], AuthMiddleware.auth, MessageController.send.bind(MessageController))
 router.getRoutes();
 
 module.exports = router;
